@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Islet desktop preview</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+  iframe { position: absolute; border: 0; background: transparent; }
+  #wall { inset: 0; width: 100%; height: 100%; }
+  #island { top: 0; left: 50%; width: 560px; height: 420px; transform: translateX(-50%); }
+  #dock { left: 0; bottom: 0; width: 100%; height: 140px; }
+  /* fake desktop icons, to show the wallpaper sits behind them */
+  .icons { position: absolute; left: 14px; top: 14px; display: grid; gap: 18px; }
+  .icons div { width: 74px; text-align: center; font: 12px/1.2 'Segoe UI', system-ui, sans-serif; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.8); }
+  .icons i { display: block; width: 40px; height: 40px; margin: 0 auto 6px; border-radius: 8px; background: linear-gradient(145deg,#ffd970,#e7a92b); box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
+  .icons div:nth-child(2) i { background: linear-gradient(145deg,#bfe3ff,#4a9be8); }
+  .icons div:nth-child(3) i { background: linear-gradient(145deg,#e9e9ee,#9a9aa5); }
+</style>
+</head>
+<body>
+<script>
+  const q = new URLSearchParams(location.search);
+  const s = q.get('surface') ? '&surface=' + q.get('surface') : '';
+  const wall = document.createElement('iframe');
+  wall.id = 'wall';
+  wall.src = '/wallpaper/index.html?scene=' + (q.get('wallpaper') || 'ember') + (q.get('arrange') ? '&mode=arrange' : '') + s;
+  document.body.appendChild(wall);
+  if (!q.get('arrange')) {
+    document.body.insertAdjacentHTML('beforeend', '<div class="icons"><div><i></i>Projects</div><div><i></i>This PC</div><div><i></i>Recycle Bin</div></div>');
+  }
+  if (q.get('island') !== 'none') {
+    const isl = document.createElement('iframe');
+    isl.id = 'island';
+    isl.src = '/island/index.html?' + (q.get('island') === 'open' ? 'open=1&' : '') + 'tab=' + (q.get('tab') || 'music') + s;
+    document.body.appendChild(isl);
+  }
+  if (q.get('dock') !== '0' && !q.get('arrange')) {
+    const d = document.createElement('iframe');
+    d.id = 'dock';
+    d.src = '/dock/index.html?dock=1' + s;
+    document.body.appendChild(d);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+{
+  "name": "islet",
+  "productName": "Islet",
+  "version": "0.1.0",
+  "description": "Turn a stock Windows 11 desktop into a glass setup: a floating island, floating taskbar, live wallpaper and widgets. No Rainmeter, no registry edits.",
+  "main": "src/main/main.js",
+  "license": "MIT",
+  "author": "Islet contributors",
+  "homepage": "https://github.com/OWNER/REPO",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "preview": "node scripts/preview.mjs",
+    "test": "node --test test/core.test.js test/renderer.test.mjs",
+    "lint": "node scripts/check-syntax.mjs",
+    "dist": "electron-builder --win --publish never",
+    "dist:zip": "electron-builder --win zip --publish never",
+    "smoke:win": "node scripts/win-smoke.js"
+  },
+  "dependencies": {
+    "koffi": "3.3.5"
+  },
+  "devDependencies": {
+    "electron": "44.9.1",
+    "electron-builder": "26.18.0",
+    "playwright": "1.63.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OWNER/REPO.git"
+  },
+  "build": {
+    "appId": "dev.islet.app",
+    "productName": "Islet",
+    "copyright": "MIT License, Islet contributors",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json",
+      "LICENSE"
+    ],
+    "asarUnpack": [
+      "src/main/helpers/*.ps1"
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Islet-${version}-win-${arch}-portable.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "Islet-Setup-${version}-${arch}.${ext}",
+      "shortcutName": "Islet"
+    },
+    "publish": null
+  }
+}

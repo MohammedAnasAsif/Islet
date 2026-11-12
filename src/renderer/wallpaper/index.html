@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en" data-surface="frost">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' islet:; img-src 'self' islet: data:; media-src 'self' islet:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'">
+  <title>Islet Wallpaper</title>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="wallpaper.css">
+</head>
+<body>
+  <div id="bg">
+    <canvas id="scene"></canvas>
+    <video id="video" muted loop playsinline preload="auto"></video>
+    <img id="image" alt="">
+    <div id="dim"></div>
+  </div>
+  <div id="widgets"></div>
+  <div id="arrange-bar" class="glass blur" hidden>
+    <span class="hint">Drag widgets to place them. Use − / + to resize.</span>
+    <button data-arrange="reset">Reset layout</button>
+    <button data-arrange="done" class="primary">Done</button>
+  </div>
+  <script type="module" src="wallpaper.js"></script>
+</body>
+</html>

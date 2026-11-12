@@ -1,0 +1,114 @@
+/* Islet shared design tokens + glass surfaces */
+@font-face {
+  font-family: 'Michroma';
+  src: url('./michroma.woff2') format('woff2');
+  font-display: block;
+}
+
+:root {
+  --font-ui: 'Segoe UI Variable Text', 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, 'Inter', sans-serif;
+  --font-display: 'Michroma', 'Segoe UI Variable Display', 'Segoe UI', sans-serif;
+  --font-num: 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
+  --accent-rgb: 124, 156, 255;
+  --accent: rgb(var(--accent-rgb));
+  --round: .75;   /* 0 = square, 1 = fully round */
+  --blur: 22px;
+  --ease: cubic-bezier(.2, .9, .25, 1.12);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Default surface = frost */
+:root, [data-surface='frost'] {
+  --s-bg: linear-gradient(165deg, rgba(255,255,255,.15), rgba(255,255,255,.04) 48%, rgba(255,255,255,.07)), rgba(14,16,24,.64);
+  --s-border: rgba(255,255,255,.2);
+  --s-hi: inset 0 1px 0 rgba(255,255,255,.32), inset 0 -1px 0 rgba(255,255,255,.04);
+  --s-shadow: 0 18px 50px -12px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.25);
+  --s-text: #f4f6fb;
+  --s-dim: rgba(236,240,250,.62);
+  --s-faint: rgba(236,240,250,.36);
+  --s-chip: rgba(255,255,255,.08);
+  --s-chip-hover: rgba(255,255,255,.16);
+  --s-line: rgba(255,255,255,.1);
+  --s-tint: transparent;
+}
+
+[data-surface='clear'] {
+  --s-bg: linear-gradient(165deg, rgba(255,255,255,.26), rgba(255,255,255,.08) 50%, rgba(255,255,255,.14)), rgba(60,66,90,.28);
+  --s-border: rgba(255,255,255,.34);
+  --s-hi: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -1px 0 rgba(255,255,255,.08);
+  --s-chip: rgba(255,255,255,.14);
+  --s-chip-hover: rgba(255,255,255,.24);
+}
+[data-surface='midnight'] {
+  --s-bg: linear-gradient(170deg, rgba(40,52,90,.5), rgba(10,12,22,0) 60%), rgba(9,11,20,.94);
+  --s-border: rgba(130,150,220,.18);
+  --s-hi: inset 0 1px 0 rgba(160,180,255,.14);
+}
+[data-surface='oled'] {
+  --s-bg: #000;
+  --s-border: rgba(255,255,255,.1);
+  --s-hi: none;
+  --s-chip: rgba(255,255,255,.07);
+}
+[data-surface='graphite'] {
+  --s-bg: linear-gradient(170deg, rgba(255,255,255,.08), rgba(255,255,255,0) 50%), rgba(44,46,52,.95);
+  --s-border: rgba(255,255,255,.12);
+  --s-hi: inset 0 1px 0 rgba(255,255,255,.1);
+}
+[data-surface='rose'] {
+  --s-bg: linear-gradient(165deg, rgba(255,170,200,.3), rgba(255,120,160,.08) 55%, rgba(255,190,210,.16)), rgba(60,16,34,.62);
+  --s-border: rgba(255,190,215,.32);
+  --s-hi: inset 0 1px 0 rgba(255,220,232,.45);
+}
+[data-surface='lilac'] {
+  --s-bg: linear-gradient(165deg, rgba(200,180,255,.3), rgba(160,130,255,.08) 55%, rgba(210,195,255,.16)), rgba(34,22,66,.62);
+  --s-border: rgba(210,195,255,.32);
+  --s-hi: inset 0 1px 0 rgba(230,220,255,.45);
+}
+[data-surface='peach'] {
+  --s-bg: linear-gradient(165deg, rgba(255,200,160,.32), rgba(255,160,110,.08) 55%, rgba(255,210,180,.16)), rgba(66,32,18,.6);
+  --s-border: rgba(255,210,180,.32);
+  --s-hi: inset 0 1px 0 rgba(255,230,210,.45);
+}
+[data-surface='mint'] {
+  --s-bg: linear-gradient(165deg, rgba(160,255,215,.26), rgba(90,230,180,.07) 55%, rgba(170,255,225,.14)), rgba(10,46,40,.62);
+  --s-border: rgba(170,255,225,.3);
+  --s-hi: inset 0 1px 0 rgba(210,255,240,.42);
+}
+[data-surface='candy'] {
+  --s-bg:
+    linear-gradient(165deg, rgba(255,255,255,.22), rgba(255,255,255,0) 45%),
+    conic-gradient(from 210deg at 70% 30%, rgba(255,120,200,.32), rgba(120,170,255,.32), rgba(120,255,220,.26), rgba(255,220,120,.26), rgba(255,120,200,.32)),
+    rgba(24,18,44,.55);
+  --s-border: rgba(255,255,255,.36);
+  --s-hi: inset 0 1px 0 rgba(255,255,255,.55), inset 0 0 0 1px rgba(255,255,255,.05);
+}
+
+.glass {
+  background: var(--s-bg);
+  border: 1px solid var(--s-border);
+  box-shadow: var(--s-hi), var(--s-shadow);
+  color: var(--s-text);
+}
+
+/* Where something real sits behind (wallpaper widgets, settings cards), the
+   glass also blurs and saturates it, like frosted glass. */
+.glass.blur {
+  backdrop-filter: blur(var(--blur)) saturate(170%);
+}
+
+[data-glow='1'] .glow {
+  box-shadow: var(--s-hi), var(--s-shadow), 0 0 0 1px rgba(var(--accent-rgb), .18), 0 8px 40px -8px rgba(var(--accent-rgb), .55);
+}
+
+.ic { flex: none; display: block; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  color: var(--s-text);
+  user-select: none;
+}
+button { font: inherit; color: inherit; }

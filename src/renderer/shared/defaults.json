@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "onboarded": false,
+  "general": {
+    "runAtStartup": false,
+    "slimWhenMaximized": true,
+    "hideOnFullscreen": true,
+    "hotkey": "Control+Alt+Space"
+  },
+  "appearance": {
+    "surface": "frost",
+    "radius": 75,
+    "accent": "auto",
+    "customAccent": "#7c9cff",
+    "blur": 22,
+    "glow": true
+  },
+  "island": {
+    "enabled": true,
+    "expandOnHover": true,
+    "hoverDelay": 140,
+    "idle": "clock",
+    "openTab": "last",
+    "lastTab": "music"
+  },
+  "taskbar": {
+    "mode": "off",
+    "float": {
+      "sideMargin": 12,
+      "vertMargin": 4,
+      "radius": 16,
+      "width": 100
+    },
+    "dock": {
+      "showClock": true,
+      "showSearch": true,
+      "reserveSpace": true,
+      "hideOnFullscreen": true,
+      "size": 44,
+      "pins": [
+        {
+          "id": "explorer",
+          "name": "File Explorer",
+          "target": "explorer.exe",
+          "kind": "exe"
+        },
+        {
+          "id": "settings",
+          "name": "Settings",
+          "target": "ms-settings:",
+          "kind": "uri"
+        }
+      ]
+    }
+  },
+  "wallpaper": {
+    "enabled": false,
+    "kind": "scene",
+    "scene": "silk",
+    "file": "",
+    "fit": "cover",
+    "dim": 0,
+    "fps": 30,
+    "quality": 0.6,
+    "pauseWhenCovered": true,
+    "pauseOnBattery": true,
+    "muted": true,
+    "library": []
+  },
+  "widgets": {
+    "enabled": true,
+    "glass": true,
+    "items": [
+      {
+        "id": "clock",
+        "type": "clock",
+        "on": true,
+        "x": 50,
+        "y": 27,
+        "style": "wide"
+      },
+      {
+        "id": "weather",
+        "type": "weather",
+        "on": true,
+        "x": 43,
+        "y": 50
+      },
+      {
+        "id": "system",
+        "type": "system",
+        "on": true,
+        "x": 57,
+        "y": 50
+      },
+      {
+        "id": "calendar",
+        "type": "calendar",
+        "on": false,
+        "x": 85,
+        "y": 22
+      },
+      {
+        "id": "media",
+        "type": "media",
+        "on": false,
+        "x": 15,
+        "y": 80
+      }
+    ],
+    "weather": {
+      "city": "",
+      "lat": null,
+      "lon": null,
+      "units": "metric"
+    }
+  },
+  "runtime": {
+    "taskbarTouched": false,
+    "prevAppBarState": null
+  }
+}

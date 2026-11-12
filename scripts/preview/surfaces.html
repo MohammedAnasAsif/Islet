@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Islet surfaces</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  #wall { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .grid { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(2, 1fr); }
+  .cell { position: relative; overflow: hidden; }
+  .cell iframe { position: absolute; left: 50%; top: 0; width: 560px; height: 300px; border: 0; transform: translateX(-50%) scale(.56); transform-origin: top center; }
+  .cell span { position: absolute; top: 160px; left: 0; right: 0; text-align: center; font: 600 13px 'Segoe UI', system-ui, sans-serif; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,.7); }
+</style>
+</head>
+<body>
+<iframe id="wall" src="/wallpaper/index.html?scene=silk&widgets=0"></iframe>
+<div class="grid" id="g"></div>
+<script>
+  const S = [['frost','Frost glass'],['clear','Clear glass'],['midnight','Midnight'],['oled','OLED black'],['graphite','Graphite'],['rose','Rose'],['lilac','Lilac'],['peach','Peach'],['mint','Mint'],['candy','Candy glass']];
+  document.getElementById('g').innerHTML = S.map(([id, n]) => `<div class="cell"><iframe src="/island/index.html?open=1&tab=music&surface=${id}"></iframe><span>${n}</span></div>`).join('');
+</script>
+</body>
+</html>

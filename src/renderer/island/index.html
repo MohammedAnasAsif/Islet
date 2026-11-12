@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" data-surface="frost">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' islet:; img-src 'self' islet: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'">
+  <title>Islet Island</title>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="island.css">
+</head>
+<body>
+  <div id="island" class="glass glow" data-state="rest" data-rest="clock">
+    <div class="rest" aria-hidden="true">
+      <div class="rest-clock"><span class="dot"></span><span class="rest-time">--:--</span></div>
+      <div class="rest-media">
+        <img class="rest-art" alt="">
+        <span class="rest-title"></span>
+        <span class="eq"><i></i><i></i><i></i><i></i></span>
+      </div>
+      <div class="rest-focus"><svg class="mini-ring" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5"/><circle class="mini-ring-fg" cx="10" cy="10" r="7.5"/></svg><span class="rest-focus-time">25:00</span></div>
+    </div>
+
+    <div class="open">
+      <header class="bar">
+        <nav class="tabs" role="tablist"></nav>
+        <button class="icon-btn" data-action="settings" title="Islet settings"></button>
+      </header>
+
+      <section class="panel" data-tab="music">
+        <div class="np">
+          <div class="np-art"><img alt=""><span class="np-app"></span></div>
+          <div class="np-meta">
+            <div class="np-title">Nothing playing</div>
+            <div class="np-artist">Play something in any app</div>
+          </div>
+          <div class="np-controls">
+            <button class="ctl" data-media="prev" title="Previous"></button>
+            <button class="ctl play" data-media="toggle" title="Play / pause"></button>
+            <button class="ctl" data-media="next" title="Next"></button>
+          </div>
+        </div>
+        <canvas class="wave" height="34"></canvas>
+        <div class="np-foot">
+          <span class="np-pos">0:00</span>
+          <span class="vol">
+            <button class="mini" data-media="volDown" title="Volume down"></button>
+            <span class="vol-ic"></span>
+            <button class="mini" data-media="volUp" title="Volume up"></button>
+          </span>
+          <span class="np-left">-0:00</span>
+        </div>
+      </section>
+
+      <section class="panel" data-tab="overview">
+        <div class="ov">
+          <div class="tile cal">
+            <div class="cal-head">
+              <span class="cal-day"></span>
+              <span class="cal-sub"><b class="cal-wd"></b><span class="cal-mon"></span></span>
+              <span class="cal-week"></span>
+            </div>
+            <div class="cal-row"></div>
+          </div>
+          <div class="tile focus">
+            <div class="ring-wrap">
+              <svg class="ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="19"/><circle class="ring-fg" cx="22" cy="22" r="19"/></svg>
+              <span class="ring-time">25:00</span>
+            </div>
+            <div class="focus-meta">
+              <b>Focus timer</b>
+              <span class="focus-sub">25 + 5 min</span>
+              <div class="focus-btns">
+                <button class="mini solid" data-focus="toggle" title="Start / pause"></button>
+                <button class="mini" data-focus="minus" title="−5 min"></button>
+                <button class="mini" data-focus="plus" title="+5 min"></button>
+                <button class="mini" data-focus="reset" title="Reset"></button>
+              </div>
+            </div>
+          </div>
+          <div class="tile wx">
+            <div class="wx-main"><span class="wx-temp">--°</span><span class="wx-ic"></span></div>
+            <div class="wx-sub"><span class="wx-label">Set your city in settings</span><span class="wx-hl"></span></div>
+          </div>
+          <div class="tile sys">
+            <div class="meter" data-k="cpu"><span>CPU</span><i><b></b></i><em>0%</em></div>
+            <div class="meter" data-k="gpu"><span>GPU</span><i><b></b></i><em>–</em></div>
+            <div class="meter" data-k="ram"><span>RAM</span><i><b></b></i><em>0%</em></div>
+            <div class="net"><span class="down"></span><span class="up"></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-tab="quick">
+        <div class="quick"></div>
+      </section>
+    </div>
+  </div>
+  <script type="module" src="island.js"></script>
+</body>
+</html>

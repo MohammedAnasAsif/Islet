@@ -1,0 +1,29 @@
+name: Bug report
+description: Something on your desktop doesn't look or work right
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Screenshots or a short screen recording help a lot.
+    validations:
+      required: true
+  - type: input
+    id: build
+    attributes:
+      label: Windows version and build
+      description: Press Win+R, type `winver`. For example "Windows 11 24H2, build 26100.2314".
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part?
+      options: [Island, Floating taskbar, Glass dock, Live wallpaper, Widgets, Settings, Installer]
+    validations:
+      required: true
+  - type: textarea
+    id: about
+    attributes:
+      label: Islet → About
+      description: Copy the details from Settings → About (version, native layer, wallpaper layer).

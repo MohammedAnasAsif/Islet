@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" data-surface="frost">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' islet:; img-src 'self' islet: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'">
+  <title>Islet Dock</title>
+  <link rel="stylesheet" href="../shared/theme.css">
+  <link rel="stylesheet" href="dock.css">
+</head>
+<body>
+  <div id="tip" class="glass"></div>
+  <div id="dock" class="glass">
+    <div class="group sys-left">
+      <button class="item sys" data-shell="start" data-tip="Start">ICON</button>
+      <button class="item sys search" data-shell="search" data-tip="Search">ICON</button>
+    </div>
+    <div class="sep"></div>
+    <div class="group apps"></div>
+    <div class="sep"></div>
+    <div class="group sys-right">
+      <button class="clock" data-shell="notifications" data-tip="Notifications and calendar"><b class="c-time"></b><span class="c-date"></span></button>
+      <button class="item sys small" data-shell="quickSettings" data-tip="Quick settings">ICON</button>
+    </div>
+  </div>
+  <script type="module" src="dock.js"></script>
+</body>
+</html>
