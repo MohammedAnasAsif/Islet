@@ -176,10 +176,9 @@ function registerAppBar() {
   wins.dock.hookWindowMessage(appBar.msg, (wParam, lParam) => {
     const code = readPtr(wParam);
     if (code === 1) setAppBarPos();                // ABN_POSCHANGED
-    if (code === 2) {                               // ABN_FULLSCREENAPP
-      const full = readPtr(lParam) !== 0;
-      if (store.get('taskbar.dock.hideOnFullscreen') && alive(wins.dock)) full ? wins.dock.hide() : wins.dock.showInactive();
-    }
+    // ABN_FULLSCREENAPP (2) is ignored on purpose: the shell can report a
+    // fullscreen app that isn't there. Our own foreground check hides the dock.
+    if (code === 2) log.info('[appbar] shell says fullscreen app:', readPtr(lParam) !== 0);
   });
   setAppBarPos();
 }
@@ -272,15 +271,19 @@ function createWallpaper() {
   w.webContents.setAudioMuted(store.get('wallpaper.muted'));
   w.loadURL(APP_URL('wallpaper/index.html'));
   w.once('ready-to-show', () => {
-    w.showInactive();
+    // Attach while still hidden. Showing it first as a normal full-screen
+    // window made Windows think a fullscreen app was running.
     if (native.available) {
       const res = native.attachToDesktop(native.hwndOf(w), physicalBoundsRelativeToVirtualScreen(d));
       wallpaperAttached = res.ok;
       log.info('[wallpaper] attach', JSON.stringify(res));
+      w.showInactive();
       if (!res.ok) {
         console.warn('[wallpaper] could not attach behind icons:', res.reason, '- using bottom-most window');
         native.sendToBottom(native.hwndOf(w));
       }
+    } else {
+      w.showInactive();
     }
   });
   w.on('focus', () => { if (native.available && !wallpaperAttached) native.sendToBottom(native.hwndOf(w)); });
@@ -445,8 +448,13 @@ function startForegroundPolling() {
   fgTimer = setInterval(() => {
     try {
       const f = native.foregroundState(process.pid);
-      if (f.own) return; // clicking the island/dock must not count as leaving the app
-      if (!f.desktop && f.hwnd) state.lastAppHwnd = f.hwnd;
+      if (f.own) {
+        // Islet's own window in front: keep "maximised" (so the island stays
+        // slim over the app beneath) but never treat it as fullscreen.
+        if (!state.fg.fullscreen) return;
+        f.maximized = state.fg.maximized; f.fullscreen = false; f.primary = true;
+      }
+      if (!f.own && !f.desktop && f.hwnd) state.lastAppHwnd = f.hwnd;
       else if (f.desktop) state.lastAppHwnd = 0;
       const coversPrimary = f.primary !== false;
       const next = {
@@ -458,6 +466,7 @@ function startForegroundPolling() {
       const changed = next.covered !== state.fg.covered || next.maximized !== state.fg.maximized || next.fullscreen !== state.fg.fullscreen;
       state.fg = next;
       if (!changed) return;
+      log.info('[fg]', JSON.stringify({ cls: f.cls, maximized: next.maximized, fullscreen: next.fullscreen, quns: f.quns }));
       broadcast('fg', next);
       updateWallpaperPause();
       const g = store.get('general');

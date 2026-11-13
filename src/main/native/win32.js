@@ -373,24 +373,28 @@ function build() {
 
   function foregroundState(ownPid) {
     const h = GetForegroundWindow();
-    const res = { hwnd: h, maximized: false, fullscreen: false, desktop: false, own: false };
-    let quns = [0];
-    if (QueryUserNotificationState(quns) === 0) {
-      // 2 = busy (fullscreen app), 3 = D3D fullscreen, 4 = presentation mode
-      if ([2, 3, 4].includes(quns[0])) res.fullscreen = true;
-    }
-    if (!h) return res;
-    const cls = className(h);
+    const res = { hwnd: h, cls: '', maximized: false, fullscreen: false, desktop: false, own: false, quns: 0 };
+    const quns = [0];
+    if (QueryUserNotificationState(quns) === 0) res.quns = quns[0];
+    // Only trust the two specific states. QUNS_BUSY (2) is a loose shell guess
+    // that stays set by mistake (it hid the island and dock with nothing open).
+    const shellSaysFullscreen = res.quns === 3 /* D3D fullscreen */ || res.quns === 4 /* presentation */;
+    if (!h) { res.fullscreen = shellSaysFullscreen; return res; }
+    const cls = res.cls = className(h);
     if (cls === 'Progman' || cls === 'WorkerW') { res.desktop = true; return res; }
     if (pidOf(h) === ownPid) { res.own = true; return res; }
     if (SHELL_CLASSES.has(cls)) return res;
     res.maximized = IsZoomed(h);
     const r = rectOf(h), m = monitorOf(h);
+    let covers = false;
     if (r && m) {
       const mr = m.monitor;
-      if (r.left <= mr.left && r.top <= mr.top && r.right >= mr.right && r.bottom >= mr.bottom) res.fullscreen = true;
+      covers = r.left <= mr.left && r.top <= mr.top && r.right >= mr.right && r.bottom >= mr.bottom;
       res.primary = m.primary;
     }
+    // A maximised window is not fullscreen (its frame can overhang the screen
+    // when the taskbar is hidden); real fullscreen apps are not maximised.
+    res.fullscreen = (covers && !res.maximized) || shellSaysFullscreen;
     return res;
   }
 

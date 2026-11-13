@@ -2,8 +2,9 @@ Islet turns a stock Windows 11 desktop into a glass setup in five quick steps. I
 
 ## What's fixed in this version
 
-- **Start, Search, Task view, notifications and Quick settings now open from the glass dock.** These menus belong to Windows' own taskbar, which Islet hides in dock mode, so they had nowhere to open. Islet now lets the (auto-hidden) taskbar exist while one of them is open, then hides it again.
-- Also includes everything from 0.1.1: island and dock clicks land, the dock switches apps, Snip works, the 24H2 desktop layer is handled, and there's a log file in Settings → About.
+- **The island and dock no longer disappear.** Windows sometimes wrongly reports that a fullscreen app is running, and Islet hid the island and dock for it. Islet now checks for itself and treats only real fullscreen apps (games, videos, presentations) as fullscreen. A maximised window no longer counts.
+- **The live wallpaper attaches without briefly appearing as a full-screen window,** which is what set off that wrong signal. It now also fits the screen exactly, with no strip of the old wallpaper along an edge.
+- Since 0.1.2: Start, Search, Task view, notifications and Quick settings open from the dock. Since 0.1.1: island and dock clicks land, Snip works, and the live wallpaper and widgets show on Windows 11 24H2 and later.
 
 ## Download
 
