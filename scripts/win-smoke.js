@@ -23,7 +23,7 @@ if (bars && bars[0]) {
   step('taskbar rect', () => native.rectOf(bars[0]));
   step('taskbar class', () => native.className(bars[0]));
   step('taskbar dpi', () => native.GetDpiForWindow(bars[0]));
-  step('taskbar has region', () => native.hasRegion(bars[0]));
+  step('taskbar region box', () => native.regionBox(bars[0]));
   step('float geometry', () => { const r = native.rectOf(bars[0]); return floatGeometry(r.right - r.left, r.bottom - r.top, 1, { sideMargin: 12, vertMargin: 4, radius: 16, width: 100 }); });
 }
 step('appBarState()', () => native.appBarState());

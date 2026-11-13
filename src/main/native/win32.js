@@ -256,9 +256,12 @@ function build() {
 
   function clearRegion(hwnd) { SetWindowRgn(hwnd, 0, true); }
 
-  function hasRegion(hwnd) {
+  // Bounding box of the window's current region, or null when it has none.
+  // (Windows can give the stock taskbar a region of its own, so callers
+  // compare the box with the shape they set rather than just checking for one.)
+  function regionBox(hwnd) {
     const r = {};
-    return GetWindowRgnBox(hwnd, r) > 1; // 0 = ERROR (no region), 1 = NULLREGION
+    return GetWindowRgnBox(hwnd, r) > 1 ? r : null; // 0 = ERROR (no region), 1 = NULLREGION
   }
 
   function appBarState() {
@@ -388,7 +391,7 @@ function build() {
     hwndOf, className, windowTitle, rectOf, monitorOf, GetDpiForWindow, IsWindow, IsWindowVisible,
     attachToDesktop, detachFromDesktop, moveChild, sendToBottom, findWallpaperHost,
     getDesktopWallpaperPath, refreshDesktopWallpaper,
-    taskbars, setRoundRegion, clearRegion, hasRegion, appBarState, setAppBarState,
+    taskbars, setRoundRegion, clearRegion, regionBox, appBarState, setAppBarState,
     hideWindow, showWindowNoActivate, ABS_AUTOHIDE, ABS_ALWAYSONTOP,
     appBarRegister, appBarSetBottom, appBarRemove,
     listAppWindows, activateWindow, closeWindow, foregroundState,

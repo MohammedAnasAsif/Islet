@@ -6,7 +6,7 @@ const os = require('os');
 const path = require('path');
 
 const { Store, merge, setPath } = require('../src/main/store');
-const { floatGeometry } = require('../src/main/native/taskbar');
+const { floatGeometry, regionMatches } = require('../src/main/native/taskbar');
 const { parseRange } = require('../src/main/protocol');
 const { describeWeather, fetchWeather, searchCity } = require('../src/main/services');
 
@@ -54,6 +54,13 @@ test('floating taskbar geometry', () => {
   assert.equal(hi.x1, 960 + 24);
   assert.equal(hi.x2, 2880 - 24 + 1);
   assert.ok(hi.radius <= (hi.y2 - hi.y1) / 2, 'radius never exceeds half the height');
+});
+
+test('region check tells our shape apart from Windows\' own', () => {
+  const geo = floatGeometry(1024, 48, 1, { sideMargin: 12, vertMargin: 4, radius: 16, width: 100 });
+  assert.equal(regionMatches(null, geo), false);
+  assert.equal(regionMatches({ left: 0, top: 0, right: 1024, bottom: 48 }, geo), false, 'stock full-size region');
+  assert.equal(regionMatches({ left: 12, top: 4, right: 1012, bottom: 44 }, geo), true);
 });
 
 test('HTTP range parsing for video wallpapers', () => {

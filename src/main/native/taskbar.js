@@ -74,9 +74,9 @@ class TaskbarController {
       const w = r.right - r.left, hgt = r.bottom - r.top;
       const s = (this.n.GetDpiForWindow(h) || 96) / 96;
       const sig = `${w}x${hgt}@${s}:${f.sideMargin},${f.vertMargin},${f.radius},${f.width}`;
-      // Re-apply when size/DPI changed, or Explorer dropped our region.
-      if (this.applied.get(h) === sig && this.n.hasRegion(h)) continue;
       const geo = floatGeometry(w, hgt, s, f);
+      // Re-apply when size/DPI changed, or Explorer replaced our region.
+      if (this.applied.get(h) === sig && regionMatches(this.n.regionBox(h), geo)) continue;
       if (this.n.setRoundRegion(h, geo.x1, geo.y1, geo.x2, geo.y2, geo.radius)) this.applied.set(h, sig);
     }
   }
@@ -125,4 +125,11 @@ function floatGeometry(w, h, scale, f) {
   return { x1, y1, x2, y2, radius };
 }
 
-module.exports = { TaskbarController, floatGeometry };
+/** Does a region bounding box match the rounded rectangle we set? */
+function regionMatches(box, geo) {
+  if (!box) return false;
+  const near = (a, b) => Math.abs(a - b) <= 2;
+  return near(box.left, geo.x1) && near(box.top, geo.y1) && near(box.right, geo.x2) && near(box.bottom, geo.y2);
+}
+
+module.exports = { TaskbarController, floatGeometry, regionMatches };
