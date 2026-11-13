@@ -582,24 +582,24 @@ function registerIpc() {
     if (action === 'quit') return app.quit();
     if (action === 'wallpaper-toggle') return store.set('wallpaper.enabled', !store.get('wallpaper.enabled'));
     if (action === 'wallpaper-next') return nextWallpaper();
-    // Prefer Windows' own URIs: they work no matter which window has focus.
-    const uris = {
-      snip: 'ms-screenclip:',
-      notifications: 'ms-actioncenter:',
-      quickSettings: 'ms-actioncenter:controlcenter/&showFooter=true',
-    };
-    if (IS_WIN && uris[action]) {
-      log.info('[shell]', action, '->', uris[action]);
-      return shell.openExternal(uris[action]).catch((e) => {
-        log.warn('[shell] uri failed, falling back to keys', action, e.message);
-        if (native.available) native.shell[action]();
-      });
+    if (!IS_WIN || !native.available) return;
+    if (action === 'snip') {
+      log.info('[shell] snip -> ms-screenclip:');
+      return shell.openExternal('ms-screenclip:').catch(() => native.shell.snip());
     }
-    const allowed = ['start', 'search', 'taskView', 'lock'];
-    if (native.available && allowed.includes(action)) {
-      log.info('[shell]', action);
+    if (action === 'lock') return native.shell.lock();
+    // Start, Search, Task view, notifications and Quick settings belong to
+    // Windows' taskbar. In dock mode it is hidden, so let it exist (still
+    // auto-hidden, so invisible) while the menu opens, then press the keys.
+    const TASKBAR_UI = ['start', 'search', 'taskView', 'notifications', 'quickSettings'];
+    if (!TASKBAR_UI.includes(action)) return;
+    const revealed = taskbar.reveal(4000);
+    log.info('[shell]', action, revealed ? '(taskbar revealed)' : '');
+    setTimeout(() => {
       try { native.shell[action](); } catch (e) { log.error('[shell]', action, e); }
-    }
+      // Record what actually came to the front, to diagnose menus that don't open.
+      setTimeout(() => log.info('[shell]', action, 'foreground is now', native.foregroundClass() || '(none)'), 1200);
+    }, revealed ? 180 : 0);
   });
 
   ipcMain.handle('app:open-logs', () => shell.openPath(app.getPath('userData')));

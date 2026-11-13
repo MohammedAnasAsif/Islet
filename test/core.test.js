@@ -6,7 +6,7 @@ const os = require('os');
 const path = require('path');
 
 const { Store, merge, setPath } = require('../src/main/store');
-const { floatGeometry, regionMatches } = require('../src/main/native/taskbar');
+const { TaskbarController, floatGeometry, regionMatches } = require('../src/main/native/taskbar');
 const { parseRange } = require('../src/main/protocol');
 const { describeWeather, fetchWeather, searchCity } = require('../src/main/services');
 
@@ -61,6 +61,36 @@ test('region check tells our shape apart from Windows\' own', () => {
   assert.equal(regionMatches(null, geo), false);
   assert.equal(regionMatches({ left: 0, top: 0, right: 1024, bottom: 48 }, geo), false, 'stock full-size region');
   assert.equal(regionMatches({ left: 12, top: 4, right: 1012, bottom: 44 }, geo), true);
+});
+
+test('dock mode lets the hidden taskbar exist while Start or a flyout is open', () => {
+  const calls = [];
+  let fgClass = 'Chrome_WidgetWin_1';
+  const fake = {
+    available: true, ABS_AUTOHIDE: 1, ABS_ALWAYSONTOP: 2,
+    taskbars: () => [100], IsWindowVisible: () => true, appBarState: () => 0, setAppBarState: () => {},
+    hideWindow: (h) => calls.push(['hide', h]), showWindowNoActivate: (h) => calls.push(['show', h]),
+    foregroundClass: () => fgClass, clearRegion: () => {},
+  };
+  const memo = {};
+  const store = { get: (k) => memo[k] ?? null, set: (k, v) => { memo[k] = v; }, patch: (o) => Object.assign(memo, o) };
+  const tb = new TaskbarController(fake, store);
+  tb.apply({ mode: 'dock', dock: {}, float: {} });
+  clearInterval(tb.timer);
+  assert.deepEqual(calls.at(-1), ['hide', 100]);
+  assert.equal(tb.reveal(4000), true);
+  assert.deepEqual(calls.at(-1), ['show', 100]);
+  calls.length = 0;
+  tb._keepHidden();
+  assert.equal(calls.length, 0, 'not re-hidden during the reveal window');
+  tb.revealUntil = 0;
+  fgClass = 'Windows.UI.Core.CoreWindow'; // Start menu still open
+  tb._keepHidden();
+  assert.equal(calls.length, 0, 'not re-hidden while Start is open');
+  fgClass = 'Chrome_WidgetWin_1';
+  tb._keepHidden();
+  assert.deepEqual(calls, [['hide', 100]], 'hidden again once Start closes');
+  tb.restore();
 });
 
 test('HTTP range parsing for video wallpapers', () => {

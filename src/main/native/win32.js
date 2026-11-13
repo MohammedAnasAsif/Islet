@@ -365,6 +365,11 @@ function build() {
 
   // ---- What is in front? -------------------------------------------------
   // Used to pause the wallpaper and slim the island when an app covers it.
+  function foregroundClass() {
+    const h = GetForegroundWindow();
+    return h ? className(h) : '';
+  }
+
   function foregroundState(ownPid) {
     const h = GetForegroundWindow();
     const res = { hwnd: h, maximized: false, fullscreen: false, desktop: false, own: false };
@@ -424,7 +429,7 @@ function build() {
     taskbars, setRoundRegion, clearRegion, regionBox, appBarState, setAppBarState,
     hideWindow, showWindowNoActivate, ABS_AUTOHIDE, ABS_ALWAYSONTOP,
     appBarRegister, appBarSetBottom, appBarRemove,
-    listAppWindows, activateWindow, closeWindow, foregroundState,
+    listAppWindows, activateWindow, closeWindow, foregroundState, foregroundClass,
     shell,
   };
 }

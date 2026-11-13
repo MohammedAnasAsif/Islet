@@ -7,6 +7,13 @@
 //           Islet glass dock can take its place.
 // Every change is undone on exit, and `Islet.exe --restore` undoes it too.
 
+// Foreground window classes of Start, Search, Task view, notification centre,
+// Quick settings and the tray overflow.
+const SHELL_UI = new Set([
+  'Windows.UI.Core.CoreWindow', 'Shell_TrayWnd', 'Shell_SecondaryTrayWnd', 'XamlExplorerHostIslandWindow',
+  'ControlCenterWindow', 'TopLevelWindowForOverflowXamlIsland', 'MultitaskingViewFrame', 'NotifyIconOverflowWindow',
+]);
+
 class TaskbarController {
   constructor(native, store) {
     this.n = native;
@@ -15,6 +22,7 @@ class TaskbarController {
     this.cfg = null;
     this.applied = new Map(); // hwnd -> signature of the region we set
     this.timer = null;
+    this.revealUntil = 0;
   }
 
   get supported() { return !!this.n.available; }
@@ -91,7 +99,19 @@ class TaskbarController {
   }
 
   _keepHidden() {
+    // While Start, Search, Task view or a taskbar flyout is open, Windows'
+    // taskbar has to exist for it; it stays auto-hidden, so it isn't seen.
+    if (Date.now() < this.revealUntil) return;
+    if (SHELL_UI.has(this.n.foregroundClass())) return;
     for (const h of this.n.taskbars()) if (this.n.IsWindowVisible(h)) this.n.hideWindow(h);
+  }
+
+  /** Let Windows' (auto-hidden) taskbar exist briefly so Start & co. can open. */
+  reveal(ms = 4000) {
+    if (this.mode !== 'dock') return false;
+    this.revealUntil = Date.now() + ms;
+    for (const h of this.n.taskbars()) this.n.showWindowNoActivate(h);
+    return true;
   }
 
   _leave(mode) {
