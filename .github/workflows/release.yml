@@ -1,16 +1,50 @@
 name: Release
 
-# Push a tag like v0.1.0 and this builds Islet on Windows and attaches the
-# installer and portable zip to a GitHub Release. Free for public repos.
+# Publishes a GitHub Release with the installer and portable zip.
+#   - Bump "version" in package.json and push to main: if there is no release
+#     for that version yet, this builds and publishes v<version>.
+#   - Or push a tag like v0.2.0.
+#   - Or run it by hand from the Actions tab.
+# Free for public repos.
 on:
   push:
+    branches: [main]
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.v.outputs.tag }}
+      needed: ${{ steps.v.outputs.needed }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: v
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then tag="$GITHUB_REF_NAME"
+          else tag="v$(node -p "require('./package.json').version")"; fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $tag already exists, nothing to do."
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
   release:
+    needs: check
+    if: needs.check.outputs.needed == 'true'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
@@ -20,6 +54,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - run: npm run smoke:win
       - run: npm run dist
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
@@ -27,6 +62,9 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.check.outputs.tag }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/*.exe dist/*.zip \
-            --title "Islet $GITHUB_REF_NAME" --generate-notes
+          gh release create "$TAG" dist/*.exe dist/*.zip \
+            --target "$GITHUB_SHA" \
+            --title "Islet $TAG" \
+            --notes-file .github/release-notes.md

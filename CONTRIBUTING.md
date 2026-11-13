@@ -29,3 +29,7 @@ If you're on Windows, also run `npm start` and try your change for real, and run
 ## Reporting a Windows problem
 
 Please include your Windows build (`winver`) and the details from Settings → About. The desktop and taskbar internals differ between Windows releases, so the build number matters most.
+
+## Releasing (maintainer)
+
+Bump `"version"` in `package.json` and push to `main`. The Release workflow sees that there's no release for that version yet, builds Islet on Windows, and publishes `v<version>` with the installer and portable zip. Pushing a `v*` tag, or running the workflow from the Actions tab, works too.
