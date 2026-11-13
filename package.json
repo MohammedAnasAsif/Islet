@@ -6,7 +6,7 @@
   "main": "src/main/main.js",
   "license": "MIT",
   "author": "Islet contributors",
-  "homepage": "https://github.com/OWNER/REPO",
+  "homepage": "https://github.com/MohammedAnasAsif/Islet",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
@@ -27,7 +27,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/OWNER/REPO.git"
+    "url": "https://github.com/MohammedAnasAsif/Islet.git"
   },
   "build": {
     "appId": "dev.islet.app",

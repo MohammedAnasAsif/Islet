@@ -73,8 +73,8 @@ You need Windows 11 (22H2 or later recommended). Windows 10 mostly works too, bu
 You need [Node.js 22](https://nodejs.org) and Git.
 
 ```bash
-git clone https://github.com/OWNER/REPO.git islet
-cd islet
+git clone https://github.com/MohammedAnasAsif/Islet.git
+cd Islet
 npm install
 npm start          # run Islet (Windows for the full experience)
 npm run dist       # build the installer + portable zip into dist/
