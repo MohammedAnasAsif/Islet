@@ -264,7 +264,7 @@ function createWallpaper() {
   if (!IS_WIN && !DEV) return; // the desktop layer only exists on Windows
   const d = primary();
   const w = new BrowserWindow({
-    ...d.bounds, frame: false, show: false, skipTaskbar: true, focusable: false, resizable: false, movable: false,
+    ...d.bounds, frame: false, thickFrame: false, show: false, skipTaskbar: true, focusable: false, resizable: false, movable: false,
     minimizable: false, maximizable: false, fullscreenable: false, hasShadow: false, backgroundColor: '#000000',
     title: 'Islet Wallpaper', webPreferences: baseWebPrefs({ backgroundThrottling: false }),
   });

@@ -93,7 +93,7 @@ function build() {
 
   // ---- Constants ---------------------------------------------------------
   const GWL_EXSTYLE = -20, GWL_STYLE = -16;
-  const WS_CHILD = 0x40000000, WS_POPUP = 0x80000000, WS_EX_LAYERED = 0x80000, LWA_ALPHA = 0x2;
+  const WS_CHILD = 0x40000000, WS_VISIBLE = 0x10000000, WS_CLIPSIBLINGS = 0x04000000, WS_CLIPCHILDREN = 0x02000000, WS_EX_LAYERED = 0x80000, LWA_ALPHA = 0x2;
   const WS_EX_TOOLWINDOW = 0x80;
   const WS_EX_NOACTIVATE = 0x08000000;
   const GW_OWNER = 4;
@@ -214,8 +214,9 @@ function build() {
       // Windows 11 24H2+: Progman composes its children itself, so the
       // wallpaper must be a real child window and layered, or it stays invisible.
       const u32 = (v) => Number(BigInt.asUintN(32, BigInt(v)));
-      const style = u32(GetWindowLongPtrW(hwnd, GWL_STYLE));
-      SetWindowLongPtrW(hwnd, GWL_STYLE, ((style & ~WS_POPUP) | WS_CHILD) >>> 0);
+      // A plain child: no caption or resize border (those made the window
+      // bigger than the screen), just visible and clipped.
+      SetWindowLongPtrW(hwnd, GWL_STYLE, (WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN) >>> 0);
       const ex = u32(GetWindowLongPtrW(hwnd, GWL_EXSTYLE));
       SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (ex | WS_EX_LAYERED) >>> 0);
       SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
