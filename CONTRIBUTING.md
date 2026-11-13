@@ -1,5 +1,7 @@
 # Contributing to Islet
 
+Islet is owned and maintained by [Mohammed Anas Asif](https://github.com/MohammedAnasAsif), who reviews and merges all pull requests.
+
 Thanks for helping. A few things keep Islet easy to work on:
 
 - **Plain JavaScript, no build step.** The UI is ES modules loaded straight from `src/renderer`. The main process is CommonJS.

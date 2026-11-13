@@ -379,6 +379,9 @@ const PAGES = {
         <span>Wallpaper layer</span><code>${info.wallpaperAttached ? 'Behind desktop icons' : 'Not attached'}</code>
         <span>Settings file</span><code>${esc(info.settingsPath)}</code>
       </div>`)));
+      el.appendChild(heading('Made by'));
+      const maker = row('Mohammed Anas Asif', 'Creator and maintainer of Islet.', button('GitHub', '', () => api.invoke('open-external', 'https://github.com/MohammedAnasAsif/Islet'), 'github'));
+      el.appendChild(group(maker));
       el.appendChild(heading('Built with'));
       el.appendChild(group(h(`<div class="kv">
         <span>Electron</span><code>MIT</code>

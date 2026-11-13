@@ -8,6 +8,8 @@
 A floating island, a floating taskbar, a live wallpaper and desktop widgets.
 No Rainmeter, no registry edits, no cost.
 
+Created and maintained by **[Mohammed Anas Asif](https://github.com/MohammedAnasAsif)**.
+
 <img src="docs/screenshots/desktop-hero.png" alt="Islet on Windows 11: glass island with music, big THURSDAY clock, weather and system widgets over a live wallpaper, and a floating glass dock" width="100%">
 
 </div>
@@ -131,6 +133,10 @@ scripts/         Preview renderer, syntax check, Windows smoke test
 ## Contributing
 
 Pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues are new scenes (a single shader in `src/renderer/wallpaper/scenes.js`), new glass surfaces (a block of CSS variables in `src/renderer/shared/theme.css`) and new widgets (`src/renderer/wallpaper/widgets.js`).
+
+## Maintainer
+
+Islet was created by and is owned and maintained by **[Mohammed Anas Asif](https://github.com/MohammedAnasAsif)** ([@MohammedAnasAsif](https://github.com/MohammedAnasAsif)). Questions, ideas and bug reports are welcome in [Issues](../../issues).
 
 ## Credits
 

@@ -5,7 +5,10 @@
   "description": "Turn a stock Windows 11 desktop into a glass setup: a floating island, floating taskbar, live wallpaper and widgets. No Rainmeter, no registry edits.",
   "main": "src/main/main.js",
   "license": "MIT",
-  "author": "Islet contributors",
+  "author": {
+    "name": "Mohammed Anas Asif",
+    "url": "https://github.com/MohammedAnasAsif"
+  },
   "homepage": "https://github.com/MohammedAnasAsif/Islet",
   "scripts": {
     "start": "electron .",
@@ -32,7 +35,7 @@
   "build": {
     "appId": "dev.islet.app",
     "productName": "Islet",
-    "copyright": "MIT License, Islet contributors",
+    "copyright": "Copyright (c) 2026 Mohammed Anas Asif. MIT License.",
     "directories": {
       "output": "dist"
     },
@@ -71,5 +74,11 @@
       "shortcutName": "Islet"
     },
     "publish": null
-  }
+  },
+  "contributors": [
+    {
+      "name": "Mohammed Anas Asif",
+      "url": "https://github.com/MohammedAnasAsif"
+    }
+  ]
 }
