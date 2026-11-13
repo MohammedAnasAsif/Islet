@@ -14,6 +14,7 @@ const { TaskbarController } = require('./native/taskbar');
 const { Helper } = require('./helpers/helper');
 const { CpuSampler, memory, searchCity, fetchWeather, setRunAtStartup } = require('./services');
 const proto = require('./protocol');
+const log = require('./log');
 
 const DEV = process.argv.includes('--dev');
 const IS_WIN = process.platform === 'win32';
@@ -49,6 +50,7 @@ const state = {
   wallpaperPaused: false,
   onBattery: false,
   accent: null,
+  lastAppHwnd: 0,
 };
 let wallpaperAttached = false;
 let appBar = { registered: false, msg: 0 };
@@ -106,7 +108,7 @@ function createIsland() {
     webPreferences: baseWebPrefs({ backgroundThrottling: false }),
   });
   w.setAlwaysOnTop(true, 'screen-saver');
-  w.setIgnoreMouseEvents(true, { forward: true });
+  w.setIgnoreMouseEvents(true);
   w.setVisibleOnAllWorkspaces(true);
   hardenContents(w.webContents);
   w.loadURL(APP_URL('island/index.html'));
@@ -139,12 +141,14 @@ function createDock() {
   const w = new BrowserWindow({
     width: d.bounds.width, height: h.window, x: d.bounds.x, y: d.bounds.y + d.bounds.height - h.window,
     frame: false, transparent: true, resizable: false, movable: false, minimizable: false, maximizable: false,
-    fullscreenable: false, skipTaskbar: true, alwaysOnTop: true, focusable: false, hasShadow: false, show: false,
+    // Focusable: a click makes Islet the foreground app, which is what Windows
+    // requires before it lets Islet bring another app's window to the front.
+    fullscreenable: false, skipTaskbar: true, alwaysOnTop: true, focusable: true, hasShadow: false, show: false,
     backgroundColor: '#00000000', title: 'Islet Dock',
     webPreferences: baseWebPrefs({ backgroundThrottling: false }),
   });
   w.setAlwaysOnTop(true, 'pop-up-menu');
-  w.setIgnoreMouseEvents(true, { forward: true });
+  w.setIgnoreMouseEvents(true);
   hardenContents(w.webContents);
   w.loadURL(APP_URL('dock/index.html'));
   w.once('ready-to-show', () => { w.showInactive(); registerAppBar(); });
@@ -214,7 +218,7 @@ function startDockPolling() {
     if (!native.available) return;
     try {
       const list = native.listAppWindows(process.pid);
-      const fg = state.fg.hwnd;
+      const fg = state.lastAppHwnd;
       const groups = new Map();
       for (const win of list) {
         const k = (win.exe || win.title).toLowerCase();
@@ -272,6 +276,7 @@ function createWallpaper() {
     if (native.available) {
       const res = native.attachToDesktop(native.hwndOf(w), physicalBoundsRelativeToVirtualScreen(d));
       wallpaperAttached = res.ok;
+      log.info('[wallpaper] attach', JSON.stringify(res));
       if (!res.ok) {
         console.warn('[wallpaper] could not attach behind icons:', res.reason, '- using bottom-most window');
         native.sendToBottom(native.hwndOf(w));
@@ -411,6 +416,27 @@ function registerHotkey(accel, old) {
 }
 
 // ---------------------------------------------------------------------------
+// Click areas for the see-through island and dock windows.
+// Each page reports the rectangle it occupies; we poll the cursor and make the
+// window clickable only while the cursor is inside it.
+// ---------------------------------------------------------------------------
+const hit = { rects: { island: [], dock: [] }, inside: { island: false, dock: false } };
+function pollHitAreas() {
+  const p = screen.getCursorScreenPoint();
+  for (const name of ['island', 'dock']) {
+    const w = wins[name];
+    if (!alive(w)) { hit.inside[name] = false; continue; }
+    const b = w.getBounds();
+    const x = p.x - b.x, y = p.y - b.y;
+    const inside = w.isVisible() && hit.rects[name].some((r) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h);
+    if (inside === hit.inside[name]) continue;
+    hit.inside[name] = inside;
+    w.setIgnoreMouseEvents(!inside);
+    w.webContents.send('hover', inside);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Pollers: foreground app, system stats, weather
 // ---------------------------------------------------------------------------
 let fgTimer = null;
@@ -419,6 +445,9 @@ function startForegroundPolling() {
   fgTimer = setInterval(() => {
     try {
       const f = native.foregroundState(process.pid);
+      if (f.own) return; // clicking the island/dock must not count as leaving the app
+      if (!f.desktop && f.hwnd) state.lastAppHwnd = f.hwnd;
+      else if (f.desktop) state.lastAppHwnd = 0;
       const coversPrimary = f.primary !== false;
       const next = {
         hwnd: f.hwnd,
@@ -553,18 +582,42 @@ function registerIpc() {
     if (action === 'quit') return app.quit();
     if (action === 'wallpaper-toggle') return store.set('wallpaper.enabled', !store.get('wallpaper.enabled'));
     if (action === 'wallpaper-next') return nextWallpaper();
-    const allowed = ['start', 'search', 'taskView', 'notifications', 'quickSettings', 'snip', 'lock'];
-    if (native.available && allowed.includes(action)) native.shell[action]();
+    // Prefer Windows' own URIs: they work no matter which window has focus.
+    const uris = {
+      snip: 'ms-screenclip:',
+      notifications: 'ms-actioncenter:',
+      quickSettings: 'ms-actioncenter:controlcenter/&showFooter=true',
+    };
+    if (IS_WIN && uris[action]) {
+      log.info('[shell]', action, '->', uris[action]);
+      return shell.openExternal(uris[action]).catch((e) => {
+        log.warn('[shell] uri failed, falling back to keys', action, e.message);
+        if (native.available) native.shell[action]();
+      });
+    }
+    const allowed = ['start', 'search', 'taskView', 'lock'];
+    if (native.available && allowed.includes(action)) {
+      log.info('[shell]', action);
+      try { native.shell[action](); } catch (e) { log.error('[shell]', action, e); }
+    }
   });
 
-  ipcMain.handle('island:interactive', (_e, on) => {
-    if (alive(wins.island)) wins.island.setIgnoreMouseEvents(!on, { forward: true });
-  });
-  ipcMain.handle('dock:interactive', (_e, on) => {
-    if (alive(wins.dock)) wins.dock.setIgnoreMouseEvents(!on, { forward: true });
+  ipcMain.handle('app:open-logs', () => shell.openPath(app.getPath('userData')));
+
+  ipcMain.handle('hit:rects', (e, rects) => {
+    const name = wins.island && !wins.island.isDestroyed() && e.sender === wins.island.webContents ? 'island'
+      : wins.dock && !wins.dock.isDestroyed() && e.sender === wins.dock.webContents ? 'dock' : null;
+    if (!name || !Array.isArray(rects)) return;
+    hit.rects[name] = rects.slice(0, 8).map((r) => ({ x: +r.x || 0, y: +r.y || 0, w: +r.w || 0, h: +r.h || 0 }));
   });
 
-  ipcMain.handle('dock:activate', (_e, hwnd) => native.available && native.activateWindow(Number(hwnd)));
+  ipcMain.handle('dock:activate', (_e, hwnd) => {
+    if (!native.available) return false;
+    const h = Number(hwnd);
+    const ok = native.activateWindow(h, state.lastAppHwnd);
+    log.info('[dock] activate', h, ok ? 'ok' : 'refused');
+    return ok;
+  });
   ipcMain.handle('dock:launch', (_e, target) => launch(target));
   ipcMain.handle('dock:context', (e, info) => dockContextMenu(e.sender, info || {}));
   ipcMain.handle('pin:add', async () => {
@@ -719,6 +772,8 @@ function restoreEverything() {
 }
 
 app.whenReady().then(async () => {
+  log.init(app.getPath('userData'));
+  log.info(`Islet ${app.getVersion()} starting on Windows build ${WIN_BUILD || '-'} (native layer: ${native.available ? 'on' : 'off ' + (native.reason || '')})`);
   store = new Store(app.getPath('userData'));
   taskbar = new TaskbarController(native, store);
 
@@ -754,6 +809,7 @@ app.whenReady().then(async () => {
   applyAll(store.get(), null);
   startForegroundPolling();
   startSystemPolling();
+  setInterval(pollHitAreas, 30);
 
   const onDisplays = () => { positionIsland(); positionDock(); positionWallpaper(); };
   screen.on('display-metrics-changed', onDisplays);

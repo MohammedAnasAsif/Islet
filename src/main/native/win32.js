@@ -39,6 +39,13 @@ function build() {
     uEdge: 'uint32_t', rc: RECT, lParam: 'intptr_t',
   });
   koffi.proto('bool __stdcall ISLET_ENUMPROC(intptr_t hwnd, intptr_t lParam)');
+  // INPUT for SendInput (keyboard member of the union, padded to its full size)
+  const KEYBDINPUT = koffi.struct('ISLET_KEYBDINPUT', {
+    wVk: 'uint16_t', wScan: 'uint16_t', dwFlags: 'uint32_t', time: 'uint32_t', dwExtraInfo: 'uintptr_t',
+  });
+  const INPUT = koffi.struct('ISLET_INPUT', {
+    type: 'uint32_t', ki: KEYBDINPUT, _pad: koffi.array('uint8_t', process.arch === 'ia32' ? 4 : 8),
+  });
 
   // ---- Functions ---------------------------------------------------------
   const f = (lib, sig) => lib.func(sig);
@@ -55,6 +62,10 @@ function build() {
   const IsIconic = f(user32, 'bool __stdcall IsIconic(intptr_t hwnd)');
   const IsZoomed = f(user32, 'bool __stdcall IsZoomed(intptr_t hwnd)');
   const GetWindowLongPtrW = f(user32, 'intptr_t __stdcall GetWindowLongPtrW(intptr_t hwnd, int index)');
+  const SetWindowLongPtrW = f(user32, 'intptr_t __stdcall SetWindowLongPtrW(intptr_t hwnd, int index, intptr_t value)');
+  const SetLayeredWindowAttributes = f(user32, 'bool __stdcall SetLayeredWindowAttributes(intptr_t hwnd, uint32_t key, uint8_t alpha, uint32_t flags)');
+  const SendInput = f(user32, 'uint32_t __stdcall SendInput(uint32_t count, ISLET_INPUT *inputs, int size)');
+  const MapVirtualKeyW = f(user32, 'uint32_t __stdcall MapVirtualKeyW(uint32_t code, uint32_t mapType)');
   const GetWindow = f(user32, 'intptr_t __stdcall GetWindow(intptr_t hwnd, uint32_t cmd)');
   const GetForegroundWindow = f(user32, 'intptr_t __stdcall GetForegroundWindow()');
   const SetForegroundWindow = f(user32, 'bool __stdcall SetForegroundWindow(intptr_t hwnd)');
@@ -81,7 +92,8 @@ function build() {
   const DwmGetWindowAttribute = f(dwmapi, 'int32_t __stdcall DwmGetWindowAttribute(intptr_t hwnd, uint32_t attr, void *buf, uint32_t size)');
 
   // ---- Constants ---------------------------------------------------------
-  const GWL_EXSTYLE = -20;
+  const GWL_EXSTYLE = -20, GWL_STYLE = -16;
+  const WS_CHILD = 0x40000000, WS_POPUP = 0x80000000, WS_EX_LAYERED = 0x80000, LWA_ALPHA = 0x2;
   const WS_EX_TOOLWINDOW = 0x80;
   const WS_EX_NOACTIVATE = 0x08000000;
   const GW_OWNER = 4;
@@ -152,15 +164,19 @@ function build() {
     EnumWindows((hwnd) => cb(hwnd) !== false, 0);
   }
 
-  function key(vk, extended = false) {
-    const fl = extended ? KEYEVENTF_EXTENDEDKEY : 0;
-    keybd_event(vk, 0, fl, 0);
-    keybd_event(vk, 0, fl | KEYEVENTF_KEYUP, 0);
+  // Keys Windows treats as "extended" (they need the flag to be recognised).
+  const EXTENDED = new Set([0x5B, 0x5C, 0xAD, 0xAE, 0xAF, 0xB0, 0xB1, 0xB2, 0xB3]);
+  const INPUT_KEYBOARD = 1;
+  function sendKey(vk, up) {
+    let flags = (up ? KEYEVENTF_KEYUP : 0) | (EXTENDED.has(vk) ? KEYEVENTF_EXTENDEDKEY : 0);
+    const input = { type: INPUT_KEYBOARD, ki: { wVk: vk, wScan: MapVirtualKeyW(vk, 0) & 0xff, dwFlags: flags, time: 0, dwExtraInfo: 0 }, _pad: [0, 0, 0, 0, 0, 0, 0, 0].slice(0, process.arch === 'ia32' ? 4 : 8) };
+    const sent = SendInput(1, input, koffi.sizeof(INPUT));
+    if (sent !== 1) keybd_event(vk, 0, flags, 0); // fallback to the legacy call
   }
-
+  function key(vk) { sendKey(vk, false); sendKey(vk, true); }
   function chord(vks) {
-    for (const vk of vks) keybd_event(vk, 0, 0, 0);
-    for (const vk of [...vks].reverse()) keybd_event(vk, 0, KEYEVENTF_KEYUP, 0);
+    for (const vk of vks) sendKey(vk, false);
+    for (const vk of [...vks].reverse()) sendKey(vk, true);
   }
 
   // ---- Desktop wallpaper layer ("WorkerW") -------------------------------
@@ -194,6 +210,16 @@ function build() {
   function attachToDesktop(hwnd, bounds) {
     const host = findWallpaperHost();
     if (!host) return { ok: false, reason: 'no-host' };
+    if (host.layout === 'progman') {
+      // Windows 11 24H2+: Progman composes its children itself, so the
+      // wallpaper must be a real child window and layered, or it stays invisible.
+      const u32 = (v) => Number(BigInt.asUintN(32, BigInt(v)));
+      const style = u32(GetWindowLongPtrW(hwnd, GWL_STYLE));
+      SetWindowLongPtrW(hwnd, GWL_STYLE, ((style & ~WS_POPUP) | WS_CHILD) >>> 0);
+      const ex = u32(GetWindowLongPtrW(hwnd, GWL_EXSTYLE));
+      SetWindowLongPtrW(hwnd, GWL_EXSTYLE, (ex | WS_EX_LAYERED) >>> 0);
+      SetLayeredWindowAttributes(hwnd, 0, 255, LWA_ALPHA);
+    }
     SetParent(hwnd, host.parent);
     // Coordinates inside the host are relative to the virtual screen origin.
     const { x, y, width, height } = bounds;
@@ -202,7 +228,8 @@ function build() {
     } else {
       SetWindowPos(hwnd, 0, x, y, width, height, SWP_NOZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW);
     }
-    return { ok: true, layout: host.layout };
+    const r = rectOf(hwnd);
+    return { ok: true, layout: host.layout, parent: host.parent, insertAfter: host.insertAfter, worker: host.worker, rect: r, visible: IsWindowVisible(hwnd) };
   }
 
   function moveChild(hwnd, bounds) {
@@ -323,10 +350,12 @@ function build() {
     return out;
   }
 
-  function activateWindow(h) {
+  // lastApp: the app that was in front before the dock was clicked (the dock
+  // itself is the foreground window at this point). Clicking it again minimises.
+  function activateWindow(h, lastApp = 0) {
     if (!IsWindow(h)) return false;
     if (IsIconic(h)) { ShowWindow(h, SW_RESTORE); }
-    else if (GetForegroundWindow() === h) { ShowWindow(h, SW_MINIMIZE); return true; }
+    else if (h === lastApp || GetForegroundWindow() === h) { ShowWindow(h, SW_MINIMIZE); return true; }
     // Tapping Alt lets a background process hand focus to another window.
     key(0x12);
     return SetForegroundWindow(h);
@@ -388,6 +417,7 @@ function build() {
 
   return {
     available: true,
+    inputSize: koffi.sizeof(INPUT),
     hwndOf, className, windowTitle, rectOf, monitorOf, GetDpiForWindow, IsWindow, IsWindowVisible,
     attachToDesktop, detachFromDesktop, moveChild, sendToBottom, findWallpaperHost,
     getDesktopWallpaperPath, refreshDesktopWallpaper,

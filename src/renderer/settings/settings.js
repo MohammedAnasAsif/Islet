@@ -379,6 +379,7 @@ const PAGES = {
         <span>Wallpaper layer</span><code>${info.wallpaperAttached ? 'Behind desktop icons' : 'Not attached'}</code>
         <span>Settings file</span><code>${esc(info.settingsPath)}</code>
       </div>`)));
+      el.appendChild(group(row('Log file', 'If something misbehaves, attach <code>islet.log</code> from this folder to your bug report.', button('Open log folder', '', () => api.invoke('app:open-logs'), 'folder'))));
       el.appendChild(heading('Made by'));
       const maker = row('Mohammed Anas Asif', 'Creator and maintainer of Islet.', button('GitHub', '', () => api.invoke('open-external', 'https://github.com/MohammedAnasAsif/Islet'), 'github'));
       el.appendChild(group(maker));

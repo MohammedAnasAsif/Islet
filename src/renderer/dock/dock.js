@@ -127,8 +127,18 @@ dock.addEventListener('mouseover', (e) => {
 dock.addEventListener('mouseout', (e) => { if (!e.relatedTarget || !e.relatedTarget.closest?.('.item, .clock')) tip.classList.remove('on'); });
 
 // only the bar itself catches the mouse; the rest of the window is click-through
-dock.addEventListener('mouseenter', () => api.invoke('dock:interactive', true));
-dock.addEventListener('mouseleave', () => { api.invoke('dock:interactive', false); tip.classList.remove('on'); });
+// The main process makes only the bar clickable (it polls the cursor against
+// this rectangle); everything else in the window stays click-through.
+let lastHit = '';
+function reportHitArea() {
+  const r = dock.getBoundingClientRect();
+  const rect = { x: Math.round(r.left) - 2, y: Math.round(r.top) - 2, w: Math.round(r.width) + 4, h: Math.round(r.height) + 4 };
+  const key = JSON.stringify(rect);
+  if (key !== lastHit) { lastHit = key; api.invoke('hit:rects', [rect]); }
+}
+new ResizeObserver(reportHitArea).observe(dock);
+window.addEventListener('resize', reportHitArea);
+api.on('hover', (inside) => { if (!inside) tip.classList.remove('on'); });
 
 function renderClock() {
   const now = new Date();

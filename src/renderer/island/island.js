@@ -81,6 +81,20 @@ function setSize() {
   el.style.setProperty('--w', w + 'px');
   el.style.setProperty('--h', h + 'px');
   el.style.setProperty('--r', r + 'px');
+  reportHitArea(w, h, state === 'slim' ? 0 : 8);
+}
+
+// Islet's main process decides which part of this see-through window takes
+// clicks, by polling the cursor against this rectangle. (Toggling it from
+// mouseenter/mouseleave in the page flickers on Windows and drops clicks.)
+let lastHit = '';
+function reportHitArea(w, h, top) {
+  const pad = 6;
+  const rect = { x: Math.round((innerWidth - w) / 2) - pad, y: Math.max(0, top - pad), w: w + pad * 2, h: h + top + pad * 2 };
+  const key = JSON.stringify(rect);
+  if (key === lastHit) return;
+  lastHit = key;
+  api.invoke('hit:rects', [rect]);
 }
 
 function render() {
@@ -99,32 +113,39 @@ function restingState() {
 function open(byKey = false) {
   clearTimeout(leaveTimer);
   openedByKey = byKey;
-  api.invoke('island:interactive', true);
   state = 'open';
   render();
   drawWave();
-  if (byKey) leaveTimer = setTimeout(() => { if (openedByKey) close(); }, 7000);
+  if (byKey) leaveTimer = setTimeout(() => { if (openedByKey && !hovering) close(); }, 7000);
 }
 
 function close() {
   state = restingState();
   render();
-  api.invoke('island:interactive', false);
 }
 
-el.addEventListener('mouseenter', () => {
-  clearTimeout(leaveTimer);
-  openedByKey = false;
-  api.invoke('island:interactive', true);
-  if (state !== 'open' && settings.island.expandOnHover) {
-    hoverTimer = setTimeout(open, settings.island.hoverDelay ?? 140);
+let hovering = false;
+function onHover(inside) {
+  if (inside === hovering) return;
+  hovering = inside;
+  if (inside) {
+    clearTimeout(leaveTimer);
+    openedByKey = false;
+    if (state !== 'open' && settings.island.expandOnHover) {
+      hoverTimer = setTimeout(open, settings.island.hoverDelay ?? 140);
+    }
+  } else {
+    clearTimeout(hoverTimer);
+    if (q.get('preview')) return; // the settings preview stays open
+    leaveTimer = setTimeout(close, state === 'open' ? 380 : 0);
   }
-});
-el.addEventListener('mouseleave', () => {
-  clearTimeout(hoverTimer);
-  if (q.get('preview')) return; // the settings preview stays open
-  leaveTimer = setTimeout(close, state === 'open' ? 320 : 0);
-});
+}
+api.on('hover', onHover);
+if (api.mock) {
+  // Browser preview: no main process, so use plain DOM hover.
+  el.addEventListener('mouseenter', () => onHover(true));
+  el.addEventListener('mouseleave', () => onHover(false));
+}
 el.addEventListener('click', (e) => {
   if (state !== 'open' && !e.target.closest('button')) open();
 });

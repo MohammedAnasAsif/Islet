@@ -5,12 +5,12 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 const INVOKE = new Set([
   'settings:get', 'settings:set', 'settings:patch', 'settings:reset', 'state:get',
-  'media', 'shell', 'island:interactive', 'dock:interactive', 'dock:activate', 'dock:launch', 'dock:context',
+  'media', 'shell', 'hit:rects', 'dock:activate', 'dock:launch', 'dock:context',
   'wallpaper:add-files', 'wallpaper:remove', 'wallpaper:windows-path', 'weather:search', 'weather:refresh',
-  'arrange:open', 'arrange:done', 'icon:get', 'pin:add', 'notify', 'open-external', 'app:info', 'accent:set',
+  'arrange:open', 'arrange:done', 'icon:get', 'pin:add', 'notify', 'open-external', 'app:info', 'accent:set', 'app:open-logs',
 ]);
 const EVENTS = new Set([
-  'settings', 'media', 'system', 'weather', 'dock:windows', 'fg', 'wallpaper:paused', 'island:toggle', 'nav', 'accent',
+  'settings', 'media', 'system', 'weather', 'dock:windows', 'fg', 'wallpaper:paused', 'island:toggle', 'nav', 'accent', 'hover',
 ]);
 
 contextBridge.exposeInMainWorld('islet', {

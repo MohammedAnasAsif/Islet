@@ -26,6 +26,11 @@ if (bars && bars[0]) {
   step('taskbar region box', () => native.regionBox(bars[0]));
   step('float geometry', () => { const r = native.rectOf(bars[0]); return floatGeometry(r.right - r.left, r.bottom - r.top, 1, { sideMargin: 12, vertMargin: 4, radius: 16, width: 100 }); });
 }
+step('SendInput struct size', () => {
+  const want = process.arch === 'ia32' ? 28 : 40;
+  if (native.inputSize !== want) throw new Error(`INPUT is ${native.inputSize} bytes, expected ${want}`);
+  return native.inputSize;
+});
 step('appBarState()', () => native.appBarState());
 step('desktop wallpaper path', () => native.getDesktopWallpaperPath());
 step('wallpaper host', () => native.findWallpaperHost());

@@ -1,7 +1,7 @@
 {
   "name": "islet",
   "productName": "Islet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Turn a stock Windows 11 desktop into a glass setup: a floating island, floating taskbar, live wallpaper and widgets. No Rainmeter, no registry edits.",
   "main": "src/main/main.js",
   "license": "MIT",

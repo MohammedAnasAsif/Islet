@@ -26,4 +26,4 @@ body:
     id: about
     attributes:
       label: Islet → About
-      description: Copy the details from Settings → About (version, native layer, wallpaper layer).
+      description: Copy the details from Settings → About (version, native layer, wallpaper layer). Attaching islet.log (Settings → About → Open log folder) helps a lot.
